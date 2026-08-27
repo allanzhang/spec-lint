@@ -35,7 +35,7 @@ cp -R spec-lint ~/.claude/skills/spec-lint        # Claude Code / 其他支持 S
 
 ## 规则
 
-- **8 组 33 条**（v1.4）：完整性 A / 可度量性 B / 歧义自洽 C / 证据 D / 上线就绪 F / 决策归集 G / 调研决策就绪度 H，附带体裁分流（PRD 按可验收性，调研按决策就绪度）。
+- **8 组 33 条**（v1.5）：完整性 A / 可度量性 B / 歧义自洽 C / 证据 D / 上线就绪 F / 决策归集 G / 调研决策就绪度 H，附带体裁分流（PRD 按可验收性，调研按决策就绪度）。
 - 两层检查：机械检查（`scripts/check_mechanical.py`，确定性扫描输出行号证据）+ 语义判定（按规则库逐条审，机械结果不替代判断）。
 - **规则唯一事实源是 `references/rules.md`**（每条含判定指引、正反例、校准场景、出处）。每条规则可独立关闭——误报时报规则 ID 即可退役该条。
 
@@ -50,6 +50,26 @@ cp -R spec-lint ~/.claude/skills/spec-lint        # Claude Code / 其他支持 S
 - 闸门位置在 Spec 定稿与写计划之间，烂 Spec 被拦在返工发生之前；
 - 「门禁判定」模式输出 通过/不通过+🔴 卡点清单，供流程编排；「循环模式」支持 评审→修订→复审 直到达标（上限 3 轮，见 SKILL.md 5.6）；
 - 完整联动图见 SKILL.md「工作流位置」。
+
+### 接入 OpenSpec 流水线（把 spec-lint 设为提案门禁）
+
+OpenSpec v1.6+ 自带项目级 Codex skills（`openspec init --tools codex` 会生成 propose / explore / apply 等 6 个 skill），生成 proposal 时通过 `openspec instructions <artifact> --change <name>` 向模型注入每条 artifact 的规则。把 spec-lint 门禁写进 `openspec/config.yaml` 的 `rules:`，模型在 propose 阶段就必须先过门禁、无 🔴 才能继续：
+
+```yaml
+rules:
+  proposal:
+    - "质量门禁：proposal 生成后必须运行本机已安装的 spec-lint 技能（Codex skill）评审，按 PRD 可验收性标准（规则组 A/B/C/F/G）。无 🔴（或全部被作者显式驳回并记录）才允许生成 tasks / 进入实施；评审结论随提案留存。"
+  design:
+    - "质量门禁：design 生成后必须运行本机已安装的 spec-lint 技能（Codex skill）评审，按工程规格可验收性标准（规则组 A/B/C/F/G）。无 🔴 才允许进入实施。"
+```
+
+闭环：
+
+```
+/opsx:propose "idea" → proposal.md → ★ spec-lint 门禁（无 🔴 才解锁 tasks）→ design.md → tasks.md → /opsx:apply
+```
+
+已实测：`openspec instructions proposal --change <name> --json` 的 `rules` 字段会携带上述门禁文本，作为模型的硬约束。
 
 ## 自进化
 
