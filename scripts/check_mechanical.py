@@ -10,6 +10,11 @@ v1.2 校准（来自真实 PRD 语料）：
 - B1：「智能化平台」（产品名）、「友好提示」（固定术语）、「完善」作动词
   （从句结尾/前接"随/逐步"）不报；其余仍为候选，需模型结合上下文确认。
 - G1：新增决策点标记扫描（待评审/口径待确认/待实测/审批流待定…）。
+
+v1.4 校准（调研/可行性文档复审）：
+- B1：「显著标识」是 AI 生成内容标识的法定术语，加入白名单。
+- C3：法规/公文原文直接引语（成对引号内）中的"等"不报（引号掩码）；
+  「不等」固定词不报。引号外的"等"仍为候选，需模型结合上下文确认。
 """
 import json
 import re
@@ -36,6 +41,8 @@ VAGUE_WORDS = [
 VAGUE_CONTEXT_OK = {
     "智能化": re.compile(r"智能化(?:平台|系统|产品|工具|转型)"),
     "友好": re.compile(r"友好(?:提示|文案|引导|界面)|提示友好|隐私友好|环境友好|环保友好"),
+    # v1.4：「显著标识」是 AI 生成内容标识的法定术语，非模糊形容词
+    "显著": re.compile(r"显著标识"),
 }
 # 「完善」作动词（从句结尾，或前接 随/逐步/进一步/不断/持续）不报
 WENSHAN_VERB = re.compile(r"(?:随|逐步|进一步|不断|持续|共同)[^。；\n]{0,12}完善|完善[。；，\s]*(?:$|[，。；）])")
@@ -49,7 +56,7 @@ HEDGE_WORDS = [
 # C3: 开放列举（"等待"义通过负向先行/后行排除）
 OPEN_ENDED_PATTERNS = [
     r"等等", r"之类", r"诸如此类", r"什么的",
-    r"(?<![平和同均优劣一幂系稍])等(?!待|于|级|号|同|回款|财务|业务员|通知|审核|确认|发货|回复|结果|电话|上线|到账|到货|价|我|你|他|她|人[，。、；）\s]|入[口库])",
+    r"(?<![平和同均优劣一幂系稍不])等(?!待|于|级|号|同|回款|财务|业务员|通知|审核|确认|发货|回复|结果|电话|上线|到账|到货|价|我|你|他|她|人[，。、；）\s]|入[口库])",
 ]
 
 # G1: 决策点标记（正文里尚未拍板、应归集到待决策清单的项）
@@ -58,6 +65,37 @@ DECISION_PATTERNS = [
     r"审批流待(?:确认|定|评审)", r"待实测", r"待最终锁定",
     r"待第?\s*[0-9一二两]+\s*周实测", r"待第?\s*[0-9一二两]+\s*周(?:确认|锁定)",
 ]
+
+
+# 引号对：成对引号内为原文直接引语，其中的"等"不算作者的开放列举
+_QUOTE_PAIRS = [("“", "”"), ("‘", "’"), ("「", "」"), ("『", "』")]
+
+
+def mask_quoted(line: str) -> str:
+    """把成对引号内的字符替换为空格（仅用于 C3 扫描）。
+
+    中文弯引号/直角引号严格配对；直双引号按奇偶配对；直单引号不处理
+    （英文撇号会误伤）。掩码只抑制候选，引号外的"等"照常报出。
+    """
+    chars = list(line)
+    for open_q, close_q in _QUOTE_PAIRS:
+        i = 0
+        while i < len(chars):
+            if chars[i] == open_q:
+                j = i + 1
+                while j < len(chars) and chars[j] != close_q:
+                    chars[j] = " "
+                    j += 1
+                i = j + 1
+            else:
+                i += 1
+    inside = False
+    for idx, ch in enumerate(chars):
+        if ch == '"':
+            inside = not inside
+        elif inside:
+            chars[idx] = " "
+    return "".join(chars)
 
 
 def scan(text: str) -> dict:
@@ -86,7 +124,7 @@ def scan(text: str) -> dict:
                 if w == "完善" and WENSHAN_VERB.search(line):
                     continue
                 findings["B1"].append({"line": lineno, "word": w, "text": stripped})
-        for m in open_re.finditer(line):
+        for m in open_re.finditer(mask_quoted(line)):
             findings["C3"].append({"line": lineno, "match": m.group(0), "text": stripped})
         for w in HEDGE_WORDS:
             if w in line:
