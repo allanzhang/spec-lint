@@ -41,7 +41,15 @@ cp -R spec-lint ~/.claude/skills/spec-lint        # Claude Code / 其他支持 S
 
 ## 与 spec-kit / OpenSpec 的关系
 
-上下游，不冲突：spec-kit / OpenSpec 是"写 spec → plan → tasks → 代码"的开发流水线；spec-lint 是不依附任何流水线的独立门禁，卡在进研发评审之前。
+串联，不冲突：spec-kit / OpenSpec 是"写 spec → plan → tasks → 代码"的开发流水线；spec-lint 是不依附任何流水线的独立质量门禁。
+
+```
+① brainstorming → ② 成文 Spec → ③ spec-lint 门禁 → ④ 修订循环至无🔴 → ⑤ 计划 → ⑥ 执行
+```
+
+- 闸门位置在 Spec 定稿与写计划之间，烂 Spec 被拦在返工发生之前；
+- 「门禁判定」模式输出 通过/不通过+🔴 卡点清单，供流程编排；「循环模式」支持 评审→修订→复审 直到达标（上限 3 轮，见 SKILL.md 5.6）；
+- 完整联动图见 SKILL.md「工作流位置」。
 
 ## 自进化
 
