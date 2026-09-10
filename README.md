@@ -20,6 +20,25 @@ git clone https://github.com/allanzhang/spec-lint
 | Claude Code | `~/.claude/skills/` |
 | DeepSeek Harness | `$DSH_HOME/skills/`（默认 `~/.dsh/skills/`） |
 
+### 离线安装（不联网、不用 git）
+
+从 [Releases](https://github.com/allanzhang/spec-lint/releases) 下载 `spec-lint-1.6.0.zip`
+或 `spec-lint-1.6.0.tar.gz`，解压后把 `spec-lint/` 整个目录放进你的技能目录：
+
+```bash
+unzip spec-lint-1.6.0.zip -d /tmp/sl
+cp -R /tmp/sl/spec-lint ~/.dsh/skills/spec-lint     # 换成你的宿主目录
+
+# 可选：验证包完整、工具能跑
+python3 ~/.dsh/skills/spec-lint/scripts/selftest.py
+```
+
+下载文件旁有 `SHA256SUMS`，校验：
+
+```bash
+shasum -a 256 -c SHA256SUMS
+```
+
 重开 agent 生效。`scripts/` 下的工具只依赖 `python3` 标准库（可选，见下）。
 
 ## 用法：跟 agent 说话就行
