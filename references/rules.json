@@ -1,0 +1,587 @@
+{
+  "version": "1.6.0",
+  "source": "references/rules.md",
+  "generated_by": "scripts/build_rules.py",
+  "severities": {
+    "blocker": "🔴",
+    "warning": "🟡",
+    "nit": "🔵"
+  },
+  "groups": {
+    "A": "完整性与结构",
+    "B": "可度量性",
+    "C": "歧义与自洽",
+    "F": "非功能性与上线就绪（v1.1 新增）",
+    "G": "决策归集与可行性（v1.2 新增，真实项目校准）",
+    "H": "调研与可行性文档（决策就绪度，v1.3.2 新增 / v1.4.0 增补 H5，真实项目校准）"
+  },
+  "genres": {
+    "prd": "产品/工程需求文档（按可验收性评审）",
+    "research": "调研/可行性/立项文档（按决策就绪度评审）"
+  },
+  "rules": [
+    {
+      "id": "A1",
+      "group": "A",
+      "title": "缺少成功指标 / 验收标准",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "IEEE830 可验证"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "本项目上线后用哪 1-3 个指标判断成功？基线是多少？目标值是多少？数据从哪来？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "A2",
+      "group": "A",
+      "title": "缺少非目标（Non-goals）",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "PRFAQ"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "本期明确不覆盖的场景/平台/用户群是哪些？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "A3",
+      "group": "A",
+      "title": "缺少目标用户定义",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify personas",
+        "PRFAQ"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个功能的主要使用者是谁（角色/场景）？与现有用户群什么关系？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "A4",
+      "group": "A",
+      "title": "缺少边界与异常场景",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify edge cases",
+        "IEEE830 完整"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "数据为空/用户无权限/依赖服务失败/两人同时操作时分别怎么处理？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "A5",
+      "group": "A",
+      "title": "残留未完成痕迹",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify placeholders"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "此处待确定的内容是什么？由谁、在什么时间点补齐？",
+      "detector": "mechanical",
+      "script_key": "A5"
+    },
+    {
+      "id": "A6",
+      "group": "A",
+      "title": "需求无优先级",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "IEEE830 按重要性排序"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "如果资源只够做一半，哪些需求可以砍？哪些需求是稳定的、哪些可能变？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "A7",
+      "group": "A",
+      "title": "问题定义缺失",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "PRFAQ"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个功能解决谁的什么问题？现状数据/证据是什么？不做会怎样？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "A8",
+      "group": "A",
+      "title": "决策无备选 / 取舍记录",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify tradeoffs"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "评估过哪几个方案？选择当前方案的关键取舍是什么？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "B1",
+      "group": "B",
+      "title": "模糊形容词无度量主体",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "Ambiguity",
+        "Clarify ambiguous adjectives"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个词对应的具体指标是什么？当前值和目标值是多少？",
+      "detector": "hybrid",
+      "script_key": "B1"
+    },
+    {
+      "id": "B2",
+      "group": "B",
+      "title": "指标不可测",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "IEEE830 可验证"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "该指标的基线值、目标值、采集方式（埋点/问卷/后台数据）分别是什么？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "B3",
+      "group": "B",
+      "title": "需求不可验收",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "OpenSpec WHEN",
+        "THEN",
+        "IEEE830 可验证"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "这条需求的验收场景是什么？（当 <触发条件> 时，系统应 <可观察的预期结果>）",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "B4",
+      "group": "B",
+      "title": "时间承诺无依据",
+      "severity": "nit",
+      "escalate_to": null,
+      "provenance": [
+        "经验"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个时间点的前提依赖是什么？谁确认过可行性？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "C1",
+      "group": "C",
+      "title": "术语未定义即使用 / 同概念多名",
+      "severity": "nit",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify terminology"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个术语指什么？全文统一用哪个叫法？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "C2",
+      "group": "C",
+      "title": "内部数字 / 说法矛盾",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "IEEE830 一致"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "以哪个数字为准？另一处是笔误还是口径不同？",
+      "detector": "helper",
+      "script_key": "C2_number_lines"
+    },
+    {
+      "id": "C3",
+      "group": "C",
+      "title": "\"等\"式开放列举",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Ambiguity \"etc.\""
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "除已列出的项，是否还有确定要做的？没有请改为封闭式表述。",
+      "detector": "hybrid",
+      "script_key": "C3"
+    },
+    {
+      "id": "C4",
+      "group": "C",
+      "title": "主语缺失 / 责任悬空",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "经验"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这句话的行动方是谁？在哪个环节做什么动作？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "C5",
+      "group": "C",
+      "title": "否定式需求表述",
+      "severity": "nit",
+      "escalate_to": null,
+      "provenance": [
+        "经验"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "如何验证\"不影响\"？监控哪些指标、观察多久？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "C6",
+      "group": "C",
+      "title": "弱模态 / 推诿式表述",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Ambiguity \"as much as possible\"",
+        "OpenSpec SHALL"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这条到底做不做？做的话，可判定的完成标准是什么？",
+      "detector": "hybrid",
+      "script_key": "C6"
+    },
+    {
+      "id": "C7",
+      "group": "C",
+      "title": "\"和/或\"等逻辑范围歧义",
+      "severity": "nit",
+      "escalate_to": null,
+      "provenance": [
+        "Ambiguity \"and",
+        "or\""
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "A、B 是都必须做，还是二选一？",
+      "detector": "mechanical",
+      "script_key": "C7"
+    },
+    {
+      "id": "F1",
+      "group": "F",
+      "title": "非功能性需求空白",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify NFR",
+        "IEEE830",
+        "Atlassian"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "这个功能在响应时间、失败恢复、数据保护上分别有什么最低要求？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "F2",
+      "group": "F",
+      "title": "高风险域无安全 / 合规声明",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify security & privacy"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "涉及哪些敏感数据/权限？鉴权和数据保护方案是什么？有无合规要求（隐私政策/审计）？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "F3",
+      "group": "F",
+      "title": "核心实体状态 / 生命周期未定义",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "Clarify state transitions"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "该实体的完整状态流转是什么？卡住/失败时停在哪个状态、谁能处理？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "F4",
+      "group": "F",
+      "title": "外部依赖与失败模式未声明",
+      "severity": "warning",
+      "escalate_to": "blocker",
+      "provenance": [
+        "Clarify integration",
+        "OpenSpec Impact"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "依赖谁的什么能力？对方不可用时本功能怎样降级？依赖方是否已知情确认？高频失败场景（断网/断供/限流）下，用户还能获得核心价值吗？",
+      "detector": "semantic",
+      "script_key": null,
+      "escalate_when": "核心卖点依赖的外部条件在高频场景失效，且降级模式下核心价值丧失。"
+    },
+    {
+      "id": "F5",
+      "group": "F",
+      "title": "高风险改动无灰度 / 回滚方案",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "PRFAQ release plan"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "出问题时怎么快速止损（开关/回滚）？先放多少量、观察什么指标再全量？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "D1",
+      "group": "F",
+      "title": "关键商业断言无出处",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "校准 SEV：硬伤",
+        "PRFAQ"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个数字/论断来自哪份报告或哪次调研？如果是内部估算，是否显式标注为假设并给出验证计划？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "G1",
+      "group": "G",
+      "title": "决策点散落、未归集到决策清单",
+      "severity": "warning",
+      "escalate_to": "blocker",
+      "provenance": [
+        "校准"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "这个决策的选项、默认值、负责人、拍板时间点是什么？为什么没进决策清单？",
+      "detector": "hybrid",
+      "script_key": "G1"
+    },
+    {
+      "id": "G2",
+      "group": "G",
+      "title": "排期与工作量不自洽 / 关键路径排期缺失",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "校准",
+        "IEEE830"
+      ],
+      "genres": [
+        "prd",
+        "research"
+      ],
+      "question": "测试+联调+试点缓冲是几周？资源不足/联调滑期时，哪些功能先砍、触发条件是什么？（硬件）从样机到上市的认证、开模、量产倒排期是什么？卡在哪个节日窗口？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "G3",
+      "group": "G",
+      "title": "状态机 / 跨系统动作不完备",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "校准",
+        "Clarify state transitions"
+      ],
+      "genres": [
+        "prd"
+      ],
+      "question": "该状态失败后客户看到什么、能做什么、不能做什么？降级方案的数据口径是什么？超卖/错账的责任和回滚路径是什么？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "H1",
+      "group": "H",
+      "title": "结论超前于论证 / 论据自相矛盾",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "校准"
+      ],
+      "genres": [
+        "research"
+      ],
+      "question": "这个结论的直接证据是什么？与文中相反证据如何和解？合规定性有无书面法务意见？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "H2",
+      "group": "H",
+      "title": "关键经济假设无推导 / 成本口径不全",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "校准"
+      ],
+      "genres": [
+        "research"
+      ],
+      "question": "每个关键假设的来源/推导是什么？类比对象为什么可比？全口径（含渠道/营销/授权/NRE）后的单台贡献利润和盈亏平衡量是多少？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "H3",
+      "group": "H",
+      "title": "市场缺口被默认为机会，无需求验证",
+      "severity": "warning",
+      "escalate_to": null,
+      "provenance": [
+        "校准"
+      ],
+      "genres": [
+        "research"
+      ],
+      "question": "缺口是无需求还是无人做？立项前用什么低成本方式验证付费意愿？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "H4",
+      "group": "H",
+      "title": "生命线依赖信息空白",
+      "severity": "blocker",
+      "escalate_to": null,
+      "provenance": [
+        "校准",
+        "F4 立项版"
+      ],
+      "genres": [
+        "research"
+      ],
+      "question": "该依赖有无书面意向/结论？谈不下来时项目是否终止？为什么风险定级不是致命？",
+      "detector": "semantic",
+      "script_key": null
+    },
+    {
+      "id": "H5",
+      "group": "H",
+      "title": "前置闸门与执行时序倒挂 / 验证计划名实不符",
+      "severity": "warning",
+      "escalate_to": "blocker",
+      "provenance": [
+        "校准 v1.4.0，试运行"
+      ],
+      "genres": [
+        "research"
+      ],
+      "question": "该闸门在哪个时点触发？触发前已发生的不可逆投入是多少、是否在验证预算内？Go 指标的分母与统计口径是什么？",
+      "detector": "semantic",
+      "script_key": null,
+      "escalate_when": "文档推荐路径实质是「未验证即不可逆投入」且无降级预案。"
+    }
+  ]
+}
