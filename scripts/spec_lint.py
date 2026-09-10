@@ -415,14 +415,48 @@ def cmd_questions(args) -> int:
 def cmd_round(args) -> int:
     prev = json.loads(Path(args.prev).read_text(encoding="utf-8"))
     cur = json.loads(Path(args.current).read_text(encoding="utf-8"))
-    pf = {f["fingerprint"]: f for f in prev.get("findings", [])}
-    cf = {f["fingerprint"]: f for f in cur.get("findings", [])}
+    # 已驳回（dismissed）的候选不算问题集：既不参与「已解决」，也不参与「仍存在」。
+    # 否则驳回一条候选会被误记成一轮进展。
+    prev_findings = [f for f in prev.get("findings", []) if f.get("status") != "dismissed"]
+    cur_findings = [f for f in cur.get("findings", []) if f.get("status") != "dismissed"]
+    pf = {f["fingerprint"]: f for f in prev_findings}
+    cf = {f["fingerprint"]: f for f in cur_findings}
 
-    resolved = [pf[k] for k in pf if k not in cf]
-    new = [cf[k] for k in cf if k not in pf]
     persist = [cf[k] for k in cf if k in pf]
+    gone = [pf[k] for k in pf if k not in cf]
+    fresh = [cf[k] for k in cf if k not in pf]
+
+    # 「改写后仍在」：违规标记相同、只是措辞或行号变了。
+    # 没有这一层，改一句措辞就会把一个老问题记成「新出现」，收敛信号随之失真。
+    # 只对带 match 的机械/候选类 finding 生效 —— 语义类被改写后本就该重新判断。
+    prev_by_token = {}
+    for f in prev_findings:
+        tok = (f.get("match") or "").strip()
+        if tok:
+            prev_by_token.setdefault((f["rule_id"], tok), []).append(f)
+    reworded, new = [], []
+    for f in fresh:
+        tok = (f.get("match") or "").strip()
+        old = None
+        if tok:
+            # 一对一配对：只能消费那些「确实已从本轮消失」的上轮候选，
+            # 且每条上轮候选只能用一次 —— 否则同一违规词出现多处时会错配。
+            bucket = prev_by_token.get((f["rule_id"], tok), [])
+            for cand in list(bucket):
+                if cand["fingerprint"] not in cf:
+                    old = cand
+                    bucket.remove(cand)
+                    break
+        if old is not None:
+            reworded.append({"prev": old, "cur": f})
+        else:
+            new.append(f)
+    reworded_old = {r["prev"]["fingerprint"] for r in reworded}
+    resolved = [f for f in gone if f["fingerprint"] not in reworded_old]
+
     new_open = [f for f in new if f["status"] == "open"]
-    sev_changed = [f for f in persist if f["severity"] != pf[f["fingerprint"]]["severity"]]
+    sev_changed = [f for f in persist
+                   if f["status"] == "open" and f["severity"] != pf[f["fingerprint"]]["severity"]]
 
     s = cur.get("summary", {})
     converged = len(new_open) == 0
@@ -433,9 +467,12 @@ def cmd_round(args) -> int:
             "round": cur.get("round"),
             "resolved": [f["fingerprint"] for f in resolved],
             "persisting": [f["fingerprint"] for f in persist],
+            "reworded": [{"prev": r["prev"]["fingerprint"], "cur": r["cur"]["fingerprint"]}
+                         for r in reworded],
             "new": [f["fingerprint"] for f in new],
             "counts": {"resolved": len(resolved), "persisting": len(persist),
-                       "new": len(new), "new_open": len(new_open)},
+                       "reworded": len(reworded), "new": len(new),
+                       "new_open": len(new_open)},
             "converged": converged,
             "gate": "pass" if gate_pass else "fail",
             "open_blocker": s.get("open_blocker", 0),
@@ -443,13 +480,18 @@ def cmd_round(args) -> int:
         return 0
 
     print(f"复评第 {cur.get('round')} 轮")
-    print(f"  已解决  {len(resolved)}")
-    print(f"  仍存在  {len(persist)}")
-    print(f"  新出现  {len(new_open)}" + ("   ← 收敛信号" if converged else "   ← 还在动"))
+    print(f"  已解决      {len(resolved)}")
+    print(f"  仍存在      {len(persist)}")
+    print(f"  改写后仍在  {len(reworded)}")
+    print(f"  新出现      {len(new_open)}" + ("   ← 收敛信号" if converged else "   ← 还在动"))
     if sev_changed:
         print(f"  级别变化 {len(sev_changed)}：" +
               "，".join(f"{f['rule_id']} {pf[f['fingerprint']]['severity']}→{f['severity']}"
                         for f in sev_changed))
+    for r in reworded[:5]:
+        f = r["cur"]
+        tok = f"「{f['match']}」" if f.get("match") else ""
+        print(f"    改写后仍在 {SEVERITY_MARK[f['severity']]} [{f['rule_id']}] {tok}{f['evidence'][:36]}")
     for f in new_open[:5]:
         tok = f"「{f['match']}」" if f.get("match") else ""
         print(f"    新 {SEVERITY_MARK[f['severity']]} [{f['rule_id']}] {tok}{f['evidence'][:40]}")

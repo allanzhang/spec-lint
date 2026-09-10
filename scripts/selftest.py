@@ -185,7 +185,25 @@ def check_round():
             return False, f"改用可度量表述后应无新问题并收敛，实际 {d['counts']}"
         if d["counts"]["resolved"] == 0:
             return False, "旧问题没有被判为已解决"
-    return True, "轮次对比正确识别已解决/收敛"
+
+        # 只改措辞、违规标记仍在 → 应记为「改写后仍在」，不是「新出现」
+        d2 = tmp / "doc2.md"; d2.write_text(
+            "- 显著提升新用户留存与上手效率\n", encoding="utf-8")
+        d3 = tmp / "doc3.md"; d3.write_text("- 显著提升新用户留存与上手效率\n", encoding="utf-8")
+        subprocess.run([sys.executable, str(SPEC_LINT), "scan", str(d2), "--genre", "prd",
+                        "--round", "1", "--out", str(tmp / "a.json")],
+                       check=True, capture_output=True)
+        d3.write_text("- 显著提升留存与上手效率（新用户）\n", encoding="utf-8")
+        subprocess.run([sys.executable, str(SPEC_LINT), "scan", str(d3), "--genre", "prd",
+                        "--round", "2", "--out", str(tmp / "b.json")],
+                       check=True, capture_output=True)
+        r3 = subprocess.run([sys.executable, str(SPEC_LINT), "round", "--prev", str(tmp / "a.json"),
+                             "--current", str(tmp / "b.json"), "--json"],
+                            capture_output=True, text=True)
+        d4 = json.loads(r3.stdout)
+        if d4["counts"]["reworded"] != 1 or d4["counts"]["new_open"] != 0:
+            return False, f"改写同一违规词应记为「改写后仍在」，实际 {d4['counts']}"
+    return True, "轮次对比正确识别 已解决/仍存在/改写后仍在/新出现"
 
 
 def check_resolutions():
@@ -225,6 +243,63 @@ def check_resolutions():
     return True, "驳回/降级生效，空匹配会报错"
 
 
+def check_round_ignores_dismissed():
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+
+        def mk(name, findings):
+            (tmp / name).write_text(json.dumps(
+                {"round": 1, "findings": findings,
+                 "summary": {"open_blocker": 0, "open": 1}}, ensure_ascii=False),
+                encoding="utf-8")
+
+        dismissed = {"rule_id": "C3", "severity": "warning", "status": "dismissed",
+                     "fingerprint": "C3:aaa", "evidence": "x", "match": "等", "line": 1}
+        kept = {"rule_id": "B1", "severity": "warning", "status": "open",
+                "fingerprint": "B1:bbb", "evidence": "y", "match": "丰富", "line": 2}
+        mk("prev.json", [dismissed, kept])
+        mk("cur.json", [kept])
+        r = subprocess.run([sys.executable, str(SPEC_LINT), "round", "--prev", str(tmp / "prev.json"),
+                            "--current", str(tmp / "cur.json"), "--json"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            return False, f"执行失败：{r.stderr.strip()[:80]}"
+        d = json.loads(r.stdout)
+        if d["counts"]["resolved"] != 0:
+            return False, f"已驳回项被误算成「已解决」：{d['counts']}"
+        if d["counts"]["persisting"] != 1:
+            return False, f"未解决项应仍存在，实际 {d['counts']}"
+    return True, "已驳回项不参与轮次比对"
+
+
+def check_round_duplicate_tokens():
+    """同一违规词出现多处时，改写匹配必须一对一，不能复用同一条上轮候选。"""
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+
+        def mk(name, rows):
+            findings = [{"rule_id": "B1", "severity": "warning", "status": "open",
+                         "fingerprint": fp, "evidence": ev, "match": "丰富", "line": ln}
+                        for fp, ev, ln in rows]
+            (tmp / name).write_text(json.dumps(
+                {"round": 1, "findings": findings,
+                 "summary": {"open_blocker": 0, "open": len(findings)}}, ensure_ascii=False),
+                encoding="utf-8")
+
+        mk("prev.json", [("B1:aaa", "甲处丰富", 1), ("B1:bbb", "乙处丰富", 2)])
+        mk("cur.json", [("B1:ccc", "丙处丰富", 5), ("B1:ddd", "丁处丰富", 6)])
+        r = subprocess.run([sys.executable, str(SPEC_LINT), "round", "--prev", str(tmp / "prev.json"),
+                            "--current", str(tmp / "cur.json"), "--json"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            return False, f"执行失败：{r.stderr.strip()[:80]}"
+        d = json.loads(r.stdout)
+        if (d["counts"]["reworded"] != 2 or d["counts"]["new_open"] != 0
+                or d["counts"]["resolved"] != 0):
+            return False, f"多处同词时分类错乱：{d['counts']}"
+    return True, "多处同词一对一配对，不重复消费上轮候选"
+
+
 def run_toolchain() -> int:
     checks = [
         ("规则表同步", check_rules_sync),
@@ -233,6 +308,8 @@ def run_toolchain() -> int:
         ("证据强制", check_evidence_enforcement),
         ("评审裁定", check_resolutions),
         ("轮次对比", check_round),
+        ("驳回不参与比对", check_round_ignores_dismissed),
+        ("多处同词配对", check_round_duplicate_tokens),
     ]
     fails = 0
     for name, fn in checks:
