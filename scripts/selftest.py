@@ -5,7 +5,7 @@
 
 两部分：
 1. 机械检查器语料回归：遍历 tests/cases/*.md，对照 tests/expectations/<同名>.json 断言。
-2. 工具链回归：规则表同步/完整性、指纹鲁棒性、证据强制、轮次对比。
+2. 工具链回归：规则表同步/完整性、指纹鲁棒性、证据强制、评审裁定、轮次对比。
 """
 import json
 import subprocess
@@ -188,12 +188,50 @@ def check_round():
     return True, "轮次对比正确识别已解决/收敛"
 
 
+def check_resolutions():
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        doc = tmp / "doc.md"
+        doc.write_text("- 显著提升新用户的上手效率\n", encoding="utf-8")
+        sem = tmp / "sem.json"
+        sem.write_text(json.dumps({"resolutions": [
+            {"rule_id": "B1", "match": "显著", "status": "dismissed", "reason": "测试用驳回"},
+            {"rule_id": "B1", "severity": "warning"},
+        ]}, ensure_ascii=False), encoding="utf-8")
+        out = tmp / "out.json"
+        r = subprocess.run([sys.executable, str(SPEC_LINT), "scan", str(doc), "--genre", "prd",
+                            "--semantic", str(sem), "--out", str(out)],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            return False, f"resolutions 执行失败：{r.stderr.strip()[:100]}"
+        data = json.loads(out.read_text(encoding="utf-8"))
+        b1 = [f for f in data["findings"] if f["rule_id"] == "B1"]
+        if not b1:
+            return False, "没找到 B1 候选"
+        if data["summary"].get("dismissed") != 1:
+            return False, f"驳回计数不对：{data['summary'].get('dismissed')}"
+        if any(f["severity"] != "warning" for f in b1):
+            return False, "降级没有作用于全部 B1 候选"
+        if data["gate"] != "pass":
+            return False, f"驳回 blocker 后门禁应通过，实际 {data['gate']}"
+        bad = tmp / "bad.json"
+        bad.write_text(json.dumps({"resolutions": [
+            {"rule_id": "B1", "evidence": "文档里根本不存在的句子", "status": "dismissed"}]},
+            ensure_ascii=False), encoding="utf-8")
+        r2 = subprocess.run([sys.executable, str(SPEC_LINT), "scan", str(doc), "--genre", "prd",
+                             "--semantic", str(bad)], capture_output=True, text=True)
+        if r2.returncode == 0:
+            return False, "裁定匹配不到候选时竟然静默通过"
+    return True, "驳回/降级生效，空匹配会报错"
+
+
 def run_toolchain() -> int:
     checks = [
         ("规则表同步", check_rules_sync),
         ("规则表完整性", check_rules_integrity),
         ("指纹稳定性", check_fingerprint),
         ("证据强制", check_evidence_enforcement),
+        ("评审裁定", check_resolutions),
         ("轮次对比", check_round),
     ]
     fails = 0

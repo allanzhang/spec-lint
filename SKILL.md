@@ -46,7 +46,7 @@ Pipeline 的黏合剂是 findings 表的 `fingerprint`：它让"上一轮问过�
 | `evidence` | 文档原句**逐字**引用，不得改写 |
 | `question` | 该规则对应的「请作者回答什么」。**下一轮上游要问的就是这句** |
 | `fingerprint` | `<rule_id>:<hash>`，算法见下 |
-| `status` | `open` 未解决 / `answered` 已回答 / `waived` 显式豁免 |
+| `status` | `open` 未解决 / `answered` 已回答 / `waived` 显式豁免（问题成立但接受） / `dismissed` 驳回（机械误报，问题不成立） |
 
 **指纹算法**（跨轮次、跨实现都要一致）：
 
@@ -72,7 +72,20 @@ fingerprint  = "<rule_id>:" + sha1(规范化(evidence) + "|" + 规范化(match �
    - **C2 数字矛盾** —— 先把含数字的行列出来，再自查交叉一致
    - **其余 26 条是纯语义判断**，且多为「枚举完整性」类（状态机完备性、NFR 维度、经济假设推导、依赖失败模式…）——**这类提示不主动过一遍就必然漏**，逐条走
    - *可选加速*：`python3 scripts/spec_lint.py scan <文档> --genre prd --out findings.json`
-3. **写出 findings 表**：按上面的契约，每条都要有 `evidence` 和 `question`。
+3. **写出 findings 表**：按上面的契约，每条都要有 `evidence` 和 `question`。机械层只给候选，**判断权在你**，所以还有一个 `resolutions` 层用来裁定候选：
+
+   ```json
+   {
+     "findings": [{"rule_id": "A1", "line": 7, "evidence": "<原文逐字>", "section": "目标"}],
+     "resolutions": [
+       {"rule_id": "B1", "severity": "warning", "note": "为什么降级"},
+       {"rule_id": "C3", "evidence": "<原文子串>", "status": "dismissed", "reason": "为什么是误报"}
+     ],
+     "need_human": ["<位置 + 疑点 + 为什么不确定>"]
+   }
+   ```
+
+   选择器：`rule_id` 必填；`evidence`（子串）/ `line` / `match` 任选其一用于定位，都不给则作用于该规则的全部候选。**没有这一层，机械层的误报会永久污染门禁判定**。驳回（`dismissed`）必须写 `reason`——它会成为校准日志里的 FP 记录，规则靠它收敛。
 4. **渲染报告**：按 `references/report-format.md`。**报告是表的人读视图**，不是另一份数据源。
 5. **给结论**：一句话——当前是否具备进入研发评审的条件。
 6. **征求裁决（必做）**：报告末尾固定询问："以上哪条你不认可（误报）？有没有漏掉的问题（漏报）？哪条级别不对？" 用户裁决后：

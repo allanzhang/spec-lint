@@ -143,7 +143,8 @@ def mechanical_findings(doc_text: str, rules_by_id: dict) -> tuple[list, dict]:
     return findings, cross_check
 
 
-def load_semantic(path: str, lines: list[str], rules_by_id: dict, genre: str) -> tuple[list, list]:
+def load_semantic(path: str, lines: list[str], rules_by_id: dict,
+                  genre: str) -> tuple[list, list, list]:
     """读入模型写的语义 findings，并强制"无证据不报警"。"""
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -151,6 +152,7 @@ def load_semantic(path: str, lines: list[str], rules_by_id: dict, genre: str) ->
         err(f"{path} 不是合法 JSON（{e}）")
     items = data.get("findings", []) if isinstance(data, dict) else data
     need_human = data.get("need_human", []) if isinstance(data, dict) else []
+    resolutions = data.get("resolutions", []) if isinstance(data, dict) else []
     if not isinstance(items, list):
         err(f"{path} 的 findings 必须是数组")
 
@@ -196,7 +198,61 @@ def load_semantic(path: str, lines: list[str], rules_by_id: dict, genre: str) ->
 
     if errs:
         err(f"{path} 校验未通过：\n  - " + "\n  - ".join(errs))
-    return out, need_human
+    return out, need_human, resolutions
+
+
+def apply_resolutions(findings: list, resolutions: list, rules_by_id: dict) -> list:
+    """把评审者的裁定叠加到候选上：降级、驳回（误报）、标记已回答。
+
+    机械层只给候选，判断权在评审者；没有这一层，误报会永久污染门禁判定。
+    选择器：rule_id 必填；evidence（子串）/ line / match 任选，用于定位具体候选；
+    三者都不给则作用于该规则的全部 finding。
+    """
+    errs = []
+    for res in resolutions:
+        rid = res.get("rule_id")
+        if rid not in rules_by_id:
+            errs.append(f"裁定引用了未知规则 ID：{rid!r}")
+            continue
+        sel_ev, sel_line, sel_match = res.get("evidence"), res.get("line"), res.get("match")
+        if sel_ev is None and sel_line is None and sel_match is None:
+            targets = [f for f in findings if f["rule_id"] == rid]
+        else:
+            nev = norm(sel_ev) if sel_ev else None
+            targets = []
+            for f in findings:
+                if f["rule_id"] != rid:
+                    continue
+                if sel_line is not None and f.get("line") != sel_line:
+                    continue
+                if sel_match is not None and norm(f.get("match") or "") != norm(sel_match):
+                    continue
+                if nev is not None and nev not in norm(f.get("evidence") or ""):
+                    continue
+                targets.append(f)
+        if not targets:
+            errs.append(f"裁定没有匹配到任何 finding：{json.dumps(res, ensure_ascii=False)}")
+            continue
+        status, severity = res.get("status"), res.get("severity")
+        if status is not None and status not in ("open", "answered", "waived", "dismissed"):
+            errs.append(f"裁定 status={status!r} 无效（open/answered/waived/dismissed）")
+            continue
+        if severity is not None and severity not in SEVERITY_ORDER:
+            errs.append(f"裁定 severity={severity!r} 无效（blocker/warning/nit）")
+            continue
+        if status is None and severity is None:
+            errs.append(f"裁定既没给 status 也没给 severity：{json.dumps(res, ensure_ascii=False)}")
+            continue
+        for f in targets:
+            if status:
+                f["status"] = status
+            if severity:
+                f["severity"] = severity
+            f["resolution"] = {k: res[k] for k in ("reason", "note", "owner", "expires")
+                               if res.get(k)}
+    if errs:
+        err(f"resolutions 校验未通过：\n  - " + "\n  - ".join(errs))
+    return findings
 
 
 def finalize(findings: list, doc_path: str, genre: str, rules: list, cfg: dict,
@@ -235,7 +291,7 @@ def finalize(findings: list, doc_path: str, genre: str, rules: list, cfg: dict,
     findings.sort(key=lambda f: (SEVERITY_ORDER[f["severity"]], f.get("line") or 0, f["rule_id"]))
 
     summary = {"blocker": 0, "warning": 0, "nit": 0, "open": 0, "answered": 0, "waived": 0,
-               "open_blocker": 0}
+               "dismissed": 0, "open_blocker": 0}
     for f in findings:
         summary[f["severity"]] += 1
         summary[f["status"]] += 1
@@ -262,18 +318,21 @@ def finalize(findings: list, doc_path: str, genre: str, rules: list, cfg: dict,
 def print_summary(result: dict, out_path: str | None) -> None:
     s = result["summary"]
     print(f"文档：{result['doc']}   体裁：{result['genre']}   轮次：{result['round']}")
+    extra = f"，已驳回 {s['dismissed']}" if s.get("dismissed") else ""
     print(f"{SEVERITY_MARK['blocker']} {s['blocker']} · {SEVERITY_MARK['warning']} {s['warning']}"
           f" · {SEVERITY_MARK['nit']} {s['nit']}   "
-          f"（未解决 {s['open']}，已豁免 {s['waived']}，需人工确认 {len(result['need_human'])}）")
+          f"（未解决 {s['open']}，已豁免 {s['waived']}{extra}"
+          f"，需人工确认 {len(result['need_human'])}）")
     verdict = "通过" if result["gate"] == "pass" else f"不通过（{s['open_blocker']} 项 blocker 未解决）"
     print(f"门禁：{verdict}")
-    for f in result["findings"][:10]:
+    shown = [f for f in result["findings"] if f["status"] != "dismissed"]
+    for f in shown[:10]:
         mark = SEVERITY_MARK[f["severity"]]
         loc = f"第 {f['line']} 行" if f.get("line") else "—"
         tok = f"「{f['match']}」" if f.get("match") else ""
         print(f"  {mark} [{f['rule_id']}] {loc} {tok}{f['evidence'][:44]}")
-    if len(result["findings"]) > 10:
-        print(f"  …… 另有 {len(result['findings']) - 10} 条")
+    if len(shown) > 10:
+        print(f"  …… 另有 {len(shown) - 10} 条")
     if out_path:
         print(f"表已写入：{out_path}")
 
@@ -295,10 +354,13 @@ def cmd_scan(args) -> int:
 
     findings, cross_check = mechanical_findings(text, rules_by_id)
     need_human: list = []
+    resolutions: list = []
     if args.semantic:
-        sem, need_human = load_semantic(args.semantic, lines, rules_by_id, genre)
+        sem, need_human, resolutions = load_semantic(args.semantic, lines, rules_by_id, genre)
         findings.extend(sem)
     findings = [f for f in findings if genre in rules_by_id[f["rule_id"]]["genres"]]
+    if resolutions:
+        findings = apply_resolutions(findings, resolutions, rules_by_id)
 
     result = finalize(findings, str(doc), genre, rules, cfg, args.round, cross_check, need_human)
     if args.out:
@@ -478,15 +540,16 @@ def cmd_stats(args) -> int:
     print(f"{'规则':<6}{'级别':<9}{'命中':>5}{'文档':>5}{'误报':>5}{'已修':>5}"
           f"{'漏报':>5}{'未修连续':>9}")
     for r in rows:
-        flag = ""
+        flags = []
         if r["fp_run"] >= DEMOTE_FP_RUN:
-            flag = "  ← 降级候选"
-        elif r["fixes"] >= REFACTOR_FIXES:
-            flag = "  ← 重构候选（排除表膨胀）"
-        elif r["hits"] >= PROMOTE_HITS and r["severity"] != "blocker" and r["FP"] == 0:
-            flag = "  ← 可升 blocker"
-        elif r["docs"] >= DELETE_DOCS and r["hits"] == 0:
-            flag = "  ← 待删除评审"
+            flags.append("降级候选")
+        if r["fixes"] >= REFACTOR_FIXES:
+            flags.append("重构候选（排除表膨胀）")
+        if r["hits"] >= PROMOTE_HITS and r["severity"] != "blocker" and r["FP"] == 0:
+            flags.append("可升 blocker")
+        if r["docs"] >= DELETE_DOCS and r["hits"] == 0:
+            flags.append("待删除评审")
+        flag = ("  ← " + " + ".join(flags)) if flags else ""
         if flag or r["FP"] or r["MISS"]:
             print(f"{r['rule_id']:<6}{r['severity']:<9}{r['hits']:>5}{r['docs']:>5}"
                   f"{r['FP']:>5}{r['fixes']:>5}{r['MISS']:>5}{r['fp_run']:>9}{flag}")

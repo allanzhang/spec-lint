@@ -44,3 +44,19 @@
 {"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "C3", "verdict": "FP", "note": "监管通知原文直接引语内的「等」误判为开放列举", "version": "1.4.0", "seeded": true, "fixed": "1.4.0"}
 {"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "D1", "verdict": "SEV", "note": "来源已在附录分级，但正文仍以确定语气引用待核实单源数字 → 提示证据分级贯穿正文", "version": "1.4.0", "seeded": true}
 {"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H4", "verdict": "MISS", "note": "法务诉求清单漏经营范围/牌照许可/备案主体 → 提示闭环缺口", "version": "1.4.0", "seeded": true}
+{"type": "review", "date": "2026-09-10", "genre": "prd", "doc": "countdown-app-design", "findings": ["A1", "C2", "C2", "B3", "F3", "F3", "F4", "A4"]}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "A1", "verdict": "OK", "note": "Android 原生单机应用设计文档：状态声明进入实现规划，但全文无可验收标准；用户补验收口径 = 功能符合需求定义 + 交互符合设计效果图"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C2", "verdict": "OK", "note": "同一条时间映射在「映射表」与「主视图布局」两处给出不同的分层边界，且层次数一个 4 一个 3；用户裁决以主视图布局为准"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C2", "verdict": "OK", "note": "卡片视图定位语承诺单屏容纳全部事件，但布局规格只放得下约 6 张；用户裁决改为分页，定位语只描述当前页"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "B3", "verdict": "OK", "note": "性能章节唯一验收线为「避免低端设备卡顿」，无可测阈值，而渲染迁移到 OpenGL 是最大技术风险；用户补 30fps 保底"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "F3", "verdict": "OK", "note": "日期方向判定只定义了晚于/早于今天，未定义「等于今天」，而核心隐喻里「到达瞬间」是独立一态；用户裁决改为按实时比较判定方向"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "F3", "verdict": "OK", "note": "到达仪式的触发绑在「当天打开」，错过当天后的状态迁移与初始位置未定义；用户裁决补播仪式"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "F4", "verdict": "OK", "note": "同时声明数据库加密（密钥托管于系统 Keystore）与系统自动备份，但 Keystore 密钥通常不可迁移，换机恢复可能拿到无法解密的库且这是唯一自动备份手段；用户裁决不做加密、不自动备份"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "A4", "verdict": "OK", "note": "导入只描述了主流程，校验失败/空文件/字段缺失未定义，且「覆盖」为不可逆全量清空却无快照或撤销；用户裁决只保留最新格式版本"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "A6", "verdict": "FP", "note": "V1 全量清单无内部优先级与砍项预案 —— 单机自用、非商业交付，无排期与资源约束，该前提不成立（用户驳回）"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "「中等」中的「等」被误判为开放列举（评审者驳回）", "fixed": "1.6.1", "version": "1.6.1"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "同上，「中等」是词（评审者驳回）", "fixed": "1.6.1", "version": "1.6.1"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "同上，「中等清晰」中的「等」（评审者驳回）", "fixed": "1.6.1", "version": "1.6.1"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "经系统分享面板发送到任意位置，列举是示意而非范围声明（评审者驳回）"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "位于「本期不做」清单内，不参与本期范围界定（评审者驳回）"}
+{"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "开放列举由显式的不做清单兜底，边界明确（评审者驳回）"}
