@@ -1,0 +1,22 @@
+{
+  "_说明": "把本文件复制到你的项目根目录并改名 .spec-lint.json。所有字段可选。",
+  "_genre": "默认体裁：prd（产品/工程需求文档）或 research（调研/可行性文档）",
+  "genre": "prd",
+
+  "_rules": "按规则 ID 覆盖严重度，或 off 关闭该条（只影响本项目，不改规则库）",
+  "rules": {
+    "C6": "nit",
+    "F4": "off"
+  },
+
+  "_waivers": "显式豁免：必须写理由和有效期。误报不要"报个 ID 就全局退役"，而是在这里记一次。",
+  "_waivers_fingerprint": "指纹来自 findings 表的 fingerprint 字段，跨行号稳定",
+  "waivers": [
+    {
+      "fingerprint": "B1:0123456789",
+      "reason": "该指标在附录 B 已给出基线与目标值",
+      "owner": "allan",
+      "expires": "2026-12-31"
+    }
+  ]
+}

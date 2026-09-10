@@ -1,0 +1,46 @@
+# spec-lint 裁决账（机器可读）。一行一条 JSON，空行与 # 开头的行忽略。
+#
+# type=review   一次评审记录：哪些规则在本次被评估过、命中了哪些（用于算文档覆盖）
+# type=verdict  一次人工裁决：某条规则被判 FP（误报）/ MISS（漏报）/ SEV（级别）/ OK（判定正确）
+#
+# 隐私铁律：只用体裁代称与匿名文档 id，永不写入公司名/项目名/人名/原文片段。
+# 本文件是 references/calibration.md 的机器可读对应物；叙述性教训仍写进 calibration.md。
+#
+# "seeded": true 表示由 calibration.md 历史条目回溯生成，覆盖数可能不完整。
+{"type": "review", "date": "2026-08-27", "genre": "prd", "doc": "saas-prd-1", "findings": ["G1", "G1", "G2", "G3"], "seeded": true}
+{"type": "review", "date": "2026-08-27", "genre": "prd", "doc": "saas-prd-2", "findings": ["G3"], "seeded": true}
+{"type": "review", "date": "2026-08-27", "genre": "prd", "doc": "saas-prd-3", "findings": ["G3"], "seeded": true}
+{"type": "review", "date": "2026-08-27", "genre": "prd", "doc": "iot-prd-1", "findings": ["G2", "F4", "D1"], "seeded": true}
+{"type": "review", "date": "2026-08-27", "genre": "prd", "doc": "iot-prd-2", "findings": ["G2", "F4", "D1"], "seeded": true}
+{"type": "review", "date": "2026-08-27", "genre": "research", "doc": "research-1", "findings": ["H1", "H2", "H3", "H4"], "seeded": true}
+{"type": "review", "date": "2026-08-27", "genre": "research", "doc": "research-1-rev", "findings": [], "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "saas-prd-1", "rule": "A5", "verdict": "FP", "note": "业务状态名「待确认」、UI 术语「占位」、代码示例 <domain>/<JWT>、价格示意 ¥xxx 被误判为未定占位", "version": "1.2", "seeded": true, "fixed": "1.2"}
+{"type": "verdict", "date": "2026-08-27", "doc": "saas-prd-1", "rule": "C3", "verdict": "FP", "note": "技术术语「幂等」、等待义（等财务/等通知）被误判为开放列举", "version": "1.2", "seeded": true, "fixed": "1.2"}
+{"type": "verdict", "date": "2026-08-27", "doc": "saas-prd-1", "rule": "B1", "verdict": "FP", "note": "产品名修饰词（智能化平台）、固定术语（友好提示）、动词用法（随…完善）被误判", "version": "1.2", "seeded": true, "fixed": "1.2"}
+{"type": "verdict", "date": "2026-08-27", "doc": "saas-prd-1", "rule": "G1", "verdict": "MISS", "note": "正文十余处决策标记散落，未归集到决策清单", "version": "1.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "saas-prd-1", "rule": "G2", "verdict": "MISS", "note": "人日÷人数与日历周期矛盾、测试联调无缓冲、全部必做无砍项预案", "version": "1.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "saas-prd-1", "rule": "G3", "verdict": "MISS", "note": "中间层→ERP 建单锁库为非原子写，失败态与客户可见态缺失", "version": "1.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-1", "rule": "G2", "verdict": "SEV", "note": "硬件 PRD 完全没有上市倒排期，认证/开模/量产关键路径缺失 → 增补硬件特化 blocker 条款", "version": "1.3", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-1", "rule": "F4", "verdict": "SEV", "note": "断网后核心卖点消失、降级体验与核心价值断崖 → 增补 blocker 条款", "version": "1.3", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-1", "rule": "D1", "verdict": "SEV", "note": "市场规模/增速等商业断言无报告出处，从 v2 预留提升为 blocker", "version": "1.3", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-1", "rule": "C3", "verdict": "FP", "note": "「系列」「等我一下」误报开放列举", "version": "1.3", "seeded": true, "fixed": "1.3"}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-1", "rule": "B1", "verdict": "FP", "note": "固定术语「隐私友好」误报", "version": "1.3", "seeded": true, "fixed": "1.3"}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-1", "rule": "A5", "verdict": "FP", "note": "语音复读模板中的占位符示意（学你说：xxx）非未定项", "version": "1.3", "seeded": true, "fixed": "1.3"}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-2", "rule": "C3", "verdict": "FP", "note": "「请稍等」等待义误判开放列举（2 处）", "version": "1.3.1", "seeded": true, "fixed": "1.3.1"}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-2", "rule": "G2", "verdict": "OK", "note": "迁移验证：硬件规则在第二份硬件 PRD 上正确触发（无认证排期）", "version": "1.3", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-2", "rule": "F4", "verdict": "OK", "note": "迁移验证：云端服务与内容版权成本缺失，规则跨文档有效", "version": "1.3", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "iot-prd-2", "rule": "D1", "verdict": "OK", "note": "迁移验证：样机无验收线，商业断言无出处", "version": "1.3", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H1", "verdict": "MISS", "note": "推荐合规范例与文档自身证据冲突、风险定级先于法务结论 → 新增 H1 blocker", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H2", "verdict": "MISS", "note": "跨品类类比、隐含零流失、毛利仅 BOM 口径 → 新增 H2 blocker", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H3", "verdict": "MISS", "note": "价格带空白直接推导为机会、无付费意愿验证 → 新增 H3", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H4", "verdict": "MISS", "note": "IP 授权/资质只有提问没有答案且风险定级过低 → 新增 H4 blocker", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1-rev", "rule": "D1", "verdict": "OK", "note": "反向验证通过：关键数据大多标注出处，D1 未误报，规则精度可信", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1-rev", "rule": "H1", "verdict": "OK", "note": "修复验证：修订版不再触发，原 Blocker 已转化为立项前置条件", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1-rev", "rule": "H2", "verdict": "OK", "note": "修复验证：假设已显式化并给出回填计划", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1-rev", "rule": "H4", "verdict": "OK", "note": "修复验证：生命线依赖已转前置 Blocker", "version": "1.3.2", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H5", "verdict": "MISS", "note": "Go 闸门验证动作排在大额不可逆投入之后 → 新增 H5（试运行）", "version": "1.4.0", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1-rev", "rule": "H2", "verdict": "OK", "note": "修复验收口径：假设显式化后残留项按 nit 提示", "version": "1.4.0", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "B1", "verdict": "FP", "note": "「显著标识」是 AI 生成内容标识的法定术语，误报", "version": "1.4.0", "seeded": true, "fixed": "1.4.0"}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "C3", "verdict": "FP", "note": "监管通知原文直接引语内的「等」误判为开放列举", "version": "1.4.0", "seeded": true, "fixed": "1.4.0"}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "D1", "verdict": "SEV", "note": "来源已在附录分级，但正文仍以确定语气引用待核实单源数字 → 提示证据分级贯穿正文", "version": "1.4.0", "seeded": true}
+{"type": "verdict", "date": "2026-08-27", "doc": "research-1", "rule": "H4", "verdict": "MISS", "note": "法务诉求清单漏经营范围/牌照许可/备案主体 → 提示闭环缺口", "version": "1.4.0", "seeded": true}
