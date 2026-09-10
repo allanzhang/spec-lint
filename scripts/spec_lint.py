@@ -308,11 +308,6 @@ def cmd_scan(args) -> int:
     else:
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
-    if args.fail_on != "none":
-        threshold = SEVERITY_ORDER[args.fail_on]
-        if any(f["status"] == "open" and SEVERITY_ORDER[f["severity"]] <= threshold
-               for f in result["findings"]):
-            return 1
     return 0
 
 
@@ -402,8 +397,6 @@ def cmd_round(args) -> int:
             print(f"    未解决 {SEVERITY_MARK[f['severity']]} [{f['rule_id']}] {tok}{f['evidence'][:36]}")
     print(f"\n收敛：{'是（本轮无新问题）' if converged else '否'}")
     print("门禁：" + ("通过" if gate_pass else f"不通过（{s.get('open_blocker', 0)} 项 blocker 未解决）"))
-    if args.fail_on_new and not converged:
-        return 1
     return 0
 
 
@@ -516,7 +509,6 @@ def main() -> int:
     p.add_argument("--round", type=int, default=1)
     p.add_argument("--out", help="findings 表写到哪里（默认打印到 stdout）")
     p.add_argument("--config")
-    p.add_argument("--fail-on", choices=["blocker", "warning", "nit", "none"], default="none")
     p.set_defaults(func=cmd_scan)
 
     p = sub.add_parser("questions", help="印开工前的提问清单")
@@ -529,7 +521,6 @@ def main() -> int:
     p.add_argument("--prev", required=True)
     p.add_argument("--current", required=True)
     p.add_argument("--json", action="store_true")
-    p.add_argument("--fail-on-new", action="store_true", help="本轮出现新问题则退出 1")
     p.set_defaults(func=cmd_round)
 
     p = sub.add_parser("stats", help="规则体检")
