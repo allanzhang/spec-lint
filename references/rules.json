@@ -1,5 +1,5 @@
 {
-  "version": "1.6.1",
+  "version": "1.7.0",
   "source": "references/rules.md",
   "generated_by": "scripts/build_rules.py",
   "severities": {
@@ -20,20 +20,44 @@
     "prd": "产品/工程需求文档（按可验收性评审）",
     "research": "调研/可行性/立项文档（按决策就绪度评审）"
   },
+  "aliases": {
+    "B2": "A1",
+    "F2": "F1",
+    "F3": "G3"
+  },
+  "deprecated_rules": [
+    {
+      "id": "B2",
+      "title": "🗑️ 已合并至 A1",
+      "alias": "A1"
+    },
+    {
+      "id": "F2",
+      "title": "🗑️ 已合并至 F1",
+      "alias": "F1"
+    },
+    {
+      "id": "F3",
+      "title": "🗑️ 已合并至 G3",
+      "alias": "G3"
+    }
+  ],
   "rules": [
     {
       "id": "A1",
       "group": "A",
-      "title": "缺少成功指标 / 验收标准",
+      "title": "成功指标 / 验收标准缺失或不可测",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
-        "IEEE830 可验证"
+        "IEEE830 可验证；v1.7.0 合并 B2"
       ],
       "genres": [
         "prd"
       ],
-      "question": "本项目上线后用哪 1-3 个指标判断成功？基线是多少？目标值是多少？数据从哪来？",
+      "question": "本项目上线后用哪 1-3 个指标判断成功？基线、目标值和数据来源分别是什么？新增功能如何验收？",
       "detector": "semantic",
       "script_key": null
     },
@@ -41,6 +65,8 @@
       "id": "A2",
       "group": "A",
       "title": "缺少非目标（Non-goals）",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -58,6 +84,8 @@
       "id": "A3",
       "group": "A",
       "title": "缺少目标用户定义",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -76,6 +104,8 @@
       "id": "A4",
       "group": "A",
       "title": "缺少边界与异常场景",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -93,6 +123,8 @@
       "id": "A5",
       "group": "A",
       "title": "残留未完成痕迹",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -110,15 +142,17 @@
       "id": "A6",
       "group": "A",
       "title": "需求无优先级",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
-        "IEEE830 按重要性排序"
+        "IEEE830 按重要性排序；v1.7.0 增补弃权"
       ],
       "genres": [
         "prd"
       ],
-      "question": "如果资源只够做一半，哪些需求可以砍？哪些需求是稳定的、哪些可能变？",
+      "question": "如果资源只够做一半，哪些需求可以砍？哪些需求是稳定的、哪些可能变？如果全部必做，请明确写出无砍项决策。",
       "detector": "semantic",
       "script_key": null
     },
@@ -126,6 +160,8 @@
       "id": "A7",
       "group": "A",
       "title": "问题定义缺失",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -143,16 +179,18 @@
       "id": "A8",
       "group": "A",
       "title": "决策无备选 / 取舍记录",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
-        "Clarify tradeoffs"
+        "Clarify tradeoffs；v1.7.0 增补弃权"
       ],
       "genres": [
         "prd",
         "research"
       ],
-      "question": "评估过哪几个方案？选择当前方案的关键取舍是什么？",
+      "question": "评估过哪几个方案？选择当前方案的关键取舍是什么？如果显式弃权，请记录弃权人和原因。",
       "detector": "semantic",
       "script_key": null
     },
@@ -160,6 +198,8 @@
       "id": "B1",
       "group": "B",
       "title": "模糊形容词无度量主体",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -175,36 +215,21 @@
       "script_key": "B1"
     },
     {
-      "id": "B2",
-      "group": "B",
-      "title": "指标不可测",
-      "severity": "blocker",
-      "escalate_to": null,
-      "provenance": [
-        "IEEE830 可验证"
-      ],
-      "genres": [
-        "prd"
-      ],
-      "question": "该指标的基线值、目标值、采集方式（埋点/问卷/后台数据）分别是什么？",
-      "detector": "semantic",
-      "script_key": null
-    },
-    {
       "id": "B3",
       "group": "B",
-      "title": "需求不可验收",
+      "title": "需求不可验收 / 频次承诺不可执行",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
         "OpenSpec WHEN",
-        "THEN",
-        "IEEE830 可验证"
+        "THEN；v1.7.0 增补频次"
       ],
       "genres": [
         "prd"
       ],
-      "question": "这条需求的验收场景是什么？（当 <触发条件> 时，系统应 <可观察的预期结果>）",
+      "question": "这条需求的验收场景是什么？当 <触发条件> 时，系统应 <可观察的预期结果>？频次类需求的具体时间点、渠道和时区是什么？",
       "detector": "semantic",
       "script_key": null
     },
@@ -212,6 +237,8 @@
       "id": "B4",
       "group": "B",
       "title": "时间承诺无依据",
+      "status": "active",
+      "alias": null,
       "severity": "nit",
       "escalate_to": null,
       "provenance": [
@@ -228,17 +255,19 @@
     {
       "id": "C1",
       "group": "C",
-      "title": "术语未定义即使用 / 同概念多名",
+      "title": "术语未定义 / 同概念多名 / 动作词过载",
+      "status": "active",
+      "alias": null,
       "severity": "nit",
       "escalate_to": null,
       "provenance": [
-        "Clarify terminology"
+        "Clarify terminology；v1.7.0 增补动作词"
       ],
       "genres": [
         "prd",
         "research"
       ],
-      "question": "这个术语指什么？全文统一用哪个叫法？",
+      "question": "这个术语或动作词指什么？绑定哪个对象、哪个状态节点、由谁执行？全文统一用哪个叫法？",
       "detector": "semantic",
       "script_key": null
     },
@@ -246,6 +275,8 @@
       "id": "C2",
       "group": "C",
       "title": "内部数字 / 说法矛盾",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -263,6 +294,8 @@
       "id": "C3",
       "group": "C",
       "title": "\"等\"式开放列举",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -280,6 +313,8 @@
       "id": "C4",
       "group": "C",
       "title": "主语缺失 / 责任悬空",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -297,6 +332,8 @@
       "id": "C5",
       "group": "C",
       "title": "否定式需求表述",
+      "status": "active",
+      "alias": null,
       "severity": "nit",
       "escalate_to": null,
       "provenance": [
@@ -314,6 +351,8 @@
       "id": "C6",
       "group": "C",
       "title": "弱模态 / 推诿式表述",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -332,6 +371,8 @@
       "id": "C7",
       "group": "C",
       "title": "\"和/或\"等逻辑范围歧义",
+      "status": "active",
+      "alias": null,
       "severity": "nit",
       "escalate_to": null,
       "provenance": [
@@ -347,60 +388,50 @@
       "script_key": "C7"
     },
     {
-      "id": "F1",
-      "group": "F",
-      "title": "非功能性需求空白",
+      "id": "C8",
+      "group": "C",
+      "title": "数据所有权 / 权威来源不明确",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
-        "Clarify NFR",
-        "IEEE830",
-        "Atlassian"
+        "v1.7.0 新增，试运行"
       ],
       "genres": [
         "prd"
       ],
-      "question": "这个功能在响应时间、失败恢复、数据保护上分别有什么最低要求？",
+      "question": "字段权威来源是谁？哪些端可以写？服务端如何校验？双方冲突时以谁为准？",
       "detector": "semantic",
       "script_key": null
     },
     {
-      "id": "F2",
+      "id": "F1",
       "group": "F",
-      "title": "高风险域无安全 / 合规声明",
-      "severity": "blocker",
-      "escalate_to": null,
+      "title": "非功能性、安全与合规风险",
+      "status": "active",
+      "alias": null,
+      "severity": "warning",
+      "escalate_to": "blocker",
       "provenance": [
-        "Clarify security & privacy"
+        "Clarify NFR",
+        "security；v1.7.0 合并 F2"
       ],
       "genres": [
         "prd",
         "research"
       ],
-      "question": "涉及哪些敏感数据/权限？鉴权和数据保护方案是什么？有无合规要求（隐私政策/审计）？",
+      "question": "这个功能在响应时间、失败恢复、数据保护上分别有什么最低要求？涉及哪些敏感数据、权限、合规和审计要求？",
       "detector": "semantic",
-      "script_key": null
-    },
-    {
-      "id": "F3",
-      "group": "F",
-      "title": "核心实体状态 / 生命周期未定义",
-      "severity": "warning",
-      "escalate_to": null,
-      "provenance": [
-        "Clarify state transitions"
-      ],
-      "genres": [
-        "prd"
-      ],
-      "question": "该实体的完整状态流转是什么？卡住/失败时停在哪个状态、谁能处理？",
-      "detector": "semantic",
-      "script_key": null
+      "script_key": null,
+      "escalate_when": "涉及支付、钱包、授信、权限、隐私数据或开票税控，且没有鉴权、数据保护或合规说明。"
     },
     {
       "id": "F4",
       "group": "F",
       "title": "外部依赖与失败模式未声明",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": "blocker",
       "provenance": [
@@ -420,6 +451,8 @@
       "id": "F5",
       "group": "F",
       "title": "高风险改动无灰度 / 回滚方案",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -436,6 +469,8 @@
       "id": "D1",
       "group": "D",
       "title": "关键商业断言无出处",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -454,6 +489,8 @@
       "id": "G1",
       "group": "G",
       "title": "决策点散落、未归集到决策清单",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": "blocker",
       "provenance": [
@@ -471,6 +508,8 @@
       "id": "G2",
       "group": "G",
       "title": "排期与工作量不自洽 / 关键路径排期缺失",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -488,17 +527,18 @@
     {
       "id": "G3",
       "group": "G",
-      "title": "状态机 / 跨系统动作不完备",
+      "title": "状态机 / 生命周期 / 跨系统动作不完备",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
-        "校准",
-        "Clarify state transitions"
+        "v1.7.0 合并 F3"
       ],
       "genres": [
         "prd"
       ],
-      "question": "该状态失败后客户看到什么、能做什么、不能做什么？降级方案的数据口径是什么？超卖/错账的责任和回滚路径是什么？",
+      "question": "该实体完整生命周期是什么？失败后客户看到什么、能做什么、不能做什么？失败状态由哪个业务对象承接？超卖/错账的责任和回滚路径是什么？",
       "detector": "semantic",
       "script_key": null
     },
@@ -506,6 +546,8 @@
       "id": "H1",
       "group": "H",
       "title": "结论超前于论证 / 论据自相矛盾",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -522,6 +564,8 @@
       "id": "H2",
       "group": "H",
       "title": "关键经济假设无推导 / 成本口径不全",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -538,6 +582,8 @@
       "id": "H3",
       "group": "H",
       "title": "市场缺口被默认为机会，无需求验证",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": null,
       "provenance": [
@@ -554,6 +600,8 @@
       "id": "H4",
       "group": "H",
       "title": "生命线依赖信息空白",
+      "status": "active",
+      "alias": null,
       "severity": "blocker",
       "escalate_to": null,
       "provenance": [
@@ -571,6 +619,8 @@
       "id": "H5",
       "group": "H",
       "title": "前置闸门与执行时序倒挂 / 验证计划名实不符",
+      "status": "active",
+      "alias": null,
       "severity": "warning",
       "escalate_to": "blocker",
       "provenance": [

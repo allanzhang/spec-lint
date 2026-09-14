@@ -60,3 +60,9 @@
 {"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "经系统分享面板发送到任意位置，列举是示意而非范围声明（评审者驳回）"}
 {"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "位于「本期不做」清单内，不参与本期范围界定（评审者驳回）"}
 {"type": "verdict", "date": "2026-09-10", "doc": "countdown-app-design", "rule": "C3", "verdict": "FP", "note": "开放列举由显式的不做清单兜底，边界明确（评审者驳回）"}
+{"type": "review", "date": "2026-09-14", "genre": "prd", "doc": "saas-prd-v3-governance", "findings": ["A7", "C2", "C2", "C2", "C2", "G3", "A6", "A8", "A4", "B3", "F1", "F2"], "version": "1.7.0"}
+{"type": "verdict", "date": "2026-09-14", "doc": "saas-prd-v3-governance", "rule": "F2", "verdict": "FP", "note": "增量文档显式继承基线安全章节，规则仍要求重复声明", "version": "1.7.0", "fixed": "1.7.0"}
+{"type": "verdict", "date": "2026-09-14", "doc": "saas-prd-v3-governance", "rule": "G3", "verdict": "FP", "note": "业务对象只有上游成功后进入队列，失败由上游正式单据承接", "version": "1.7.0", "fixed": "1.7.0"}
+{"type": "verdict", "date": "2026-09-14", "doc": "saas-prd-v3-governance", "rule": "A6", "verdict": "OK", "note": "用户显式声明全部必做且构成 MVP，规则支持无砍项弃权", "version": "1.7.0"}
+{"type": "verdict", "date": "2026-09-14", "doc": "saas-prd-v3-governance", "rule": "A8", "verdict": "OK", "note": "用户显式不补充备选方案，记录为接受的决策风险", "version": "1.7.0"}
+{"type": "verdict", "date": "2026-09-14", "doc": "saas-prd-v3-governance", "rule": "B3", "verdict": "OK", "note": "频次需求补充具体时间、渠道和停止条件后可通过验收", "version": "1.7.0"}

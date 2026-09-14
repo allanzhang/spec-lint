@@ -80,7 +80,8 @@ def check_rules_sync():
         return False, "rules.json 不存在"
     if br.RULES_JSON.read_text(encoding="utf-8") != want:
         return False, "rules.json 与 rules.md 不同步 —— 跑 scripts/build_rules.py"
-    return True, f"rules.json 同步（{len(data['rules'])} 条规则，v{data['version']}）"
+    return True, (f"rules.json 同步（{len(data['rules'])} 条活跃规则，"
+                  f"{len(data.get('aliases', {}))} 条合并别名，v{data['version']}）")
 
 
 def check_rules_integrity():
@@ -88,8 +89,17 @@ def check_rules_integrity():
     buckets = set(cm.scan("").keys())
     problems = []
     ids = [r["id"] for r in data["rules"]]
+    aliases = data.get("aliases", {})
     if len(set(ids)) != len(ids):
         problems.append("规则 ID 有重复")
+    for alias, target in aliases.items():
+        if target not in ids:
+            problems.append(f"别名 {alias} 指向不存在的活跃规则 {target}")
+        if alias in ids:
+            problems.append(f"别名 {alias} 不应同时是活跃规则")
+    deprecated = {r["id"] for r in data.get("deprecated_rules", [])}
+    if set(aliases) != deprecated:
+        problems.append("aliases 与 deprecated_rules 不一致")
     for r in data["rules"]:
         if not r.get("question"):
             problems.append(f"{r['id']} 缺 `- 请回答：`")
@@ -105,7 +115,8 @@ def check_rules_integrity():
             problems.append(f"{r['id']} 标为 mechanical 但没有 script_key")
     if problems:
         return False, "规则表体检未通过：" + "；".join(problems)
-    return True, f"规则表完整（{len(ids)} 条，无缺字段/无悬空 script_key）"
+    return True, (f"规则表完整（{len(ids)} 条活跃规则，{len(aliases)} 条合并别名，"
+                  "无缺字段/无悬空 script_key）")
 
 
 def check_fingerprint():

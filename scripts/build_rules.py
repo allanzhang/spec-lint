@@ -32,6 +32,8 @@ FIELD_RES = {
     "severity_override": re.compile(r"^-\s*定级：\s*(.+?)\s*$"),
     "escalate_when": re.compile(r"^-\s*升级条件：\s*(.+?)\s*$"),
     "question": re.compile(r"^-\s*请回答：\s*(.+?)\s*$"),
+    "status": re.compile(r"^-\s*状态：\s*(.+?)\s*$"),
+    "alias": re.compile(r"^-\s*合并至：\s*([A-H]\d+)\s*$"),
 }
 
 SEV_NAME = {"\U0001F534": "blocker", "\U0001F7E1": "warning", "\U0001F535": "nit"}
@@ -85,10 +87,15 @@ def parse(md_text: str) -> dict:
                 if len(parts) > 1:
                     escalate_to = parts[-1]
             script = SCRIPT_SUPPORT.get(rid)
+            title = rm.group("title").strip()
+            alias_match = re.search(r"已合并至\s*([A-H]\d+)", title)
+            deprecated = "🗑️" in title or alias_match is not None
             current = {
                 "id": rid,
                 "group": current_group,
-                "title": rm.group("title").strip(),
+                "title": title,
+                "status": "deprecated" if deprecated else "active",
+                "alias": alias_match.group(1) if alias_match else None,
                 "severity": severity,
                 "escalate_to": escalate_to,
                 "provenance": [p.strip() for p in (rm.group("prov") or "").split("/") if p.strip()],
@@ -107,6 +114,10 @@ def parse(md_text: str) -> dict:
                 val = fm.group(1)
                 if key == "genres":
                     current["genres"] = [g.strip() for g in val.split("/") if g.strip()]
+                elif key == "alias":
+                    current["alias"] = val
+                elif key == "status":
+                    current["status"] = val
                 elif key == "severity_override":
                     m2 = re.match(r"^(\w+)→(\w+)$", val)
                     if m2:
@@ -117,8 +128,12 @@ def parse(md_text: str) -> dict:
 
     errs = []
     if not version:
-        errs.append("未找到版本号（形如 `# 评审规则库 v1.6.0`）")
+        errs.append("未找到版本号（形如 `# 评审规则库 v1.7.0`）")
     for r in rules:
+        if r["status"] == "deprecated":
+            if not r["alias"]:
+                errs.append(f"{r['id']} 是 deprecated，但缺 `- 合并至：` 行")
+            continue
         if not r["genres"]:
             errs.append(f"{r['id']} 缺 `- 体裁：` 行")
         if not r["question"]:
@@ -134,6 +149,14 @@ def parse(md_text: str) -> dict:
         dupes = sorted({i for i in ids if ids.count(i) > 1})
         raise SystemExit("规则 ID 重复：" + ", ".join(dupes))
 
+    active_rules = [r for r in rules if r["status"] == "active"]
+    deprecated_rules = [r for r in rules if r["status"] == "deprecated"]
+    aliases = {r["id"]: r["alias"] for r in deprecated_rules}
+    active_ids = {r["id"] for r in active_rules}
+    for rid, target in aliases.items():
+        if target not in active_ids:
+            raise SystemExit(f"规则别名 {rid} 指向不存在的活跃规则 {target}")
+
     return {
         "version": version,
         "source": "references/rules.md",
@@ -141,7 +164,12 @@ def parse(md_text: str) -> dict:
         "severities": {"blocker": "\U0001F534", "warning": "\U0001F7E1", "nit": "\U0001F535"},
         "groups": groups,
         "genres": GENRE_DOC,
-        "rules": rules,
+        "aliases": aliases,
+        "deprecated_rules": [
+            {"id": r["id"], "title": r["title"], "alias": r["alias"]}
+            for r in deprecated_rules
+        ],
+        "rules": active_rules,
     }
 
 
@@ -159,13 +187,13 @@ def main() -> int:
         if RULES_JSON.read_text(encoding="utf-8") != text:
             print("rules.json 与 rules.md 不同步，请重跑 scripts/build_rules.py")
             return 1
-        print(f"rules.json 同步（{len(data['rules'])} 条规则，v{data['version']}）")
+        print(f"rules.json 同步（{len(data['rules'])} 条活跃规则，{len(data.get('aliases', {}))} 条合并别名，v{data['version']}）")
         return 0
     RULES_JSON.write_text(text, encoding="utf-8")
     counts: dict[str, int] = {}
     for r in data["rules"]:
         counts[r["detector"]] = counts.get(r["detector"], 0) + 1
-    print(f"已生成 references/rules.json（v{data['version']}，{len(data['rules'])} 条规则）")
+    print(f"已生成 references/rules.json（v{data['version']}，{len(data['rules'])} 条活跃规则，{len(data.get('aliases', {}))} 条合并别名）")
     print("判定方式：" + "，".join(f"{k} {v}" for k, v in sorted(counts.items())))
     return 0
 

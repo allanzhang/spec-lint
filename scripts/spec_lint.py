@@ -542,9 +542,10 @@ def cmd_stats(args) -> int:
                 stat[rid]["hits"] += 1
                 stat[rid]["hit_docs"].add(rv.get("doc"))
     for v in verdicts:
-        rid = v.get("rule")
+        raw_rid = v.get("rule")
+        rid = rules_data.get("aliases", {}).get(raw_rid, raw_rid)
         if rid not in stat:
-            err(f"裁决账引用了未知规则：{rid}")
+            err(f"裁决账引用了未知规则：{raw_rid}")
         verdict = v.get("verdict")
         if verdict not in ("FP", "MISS", "SEV", "OK"):
             err(f"裁决 {verdict!r} 无效（FP/MISS/SEV/OK）")
@@ -570,6 +571,7 @@ def cmd_stats(args) -> int:
         for r in rows:
             r["hit_docs"] = len([d for d in r["hit_docs"] if d])
         print(json.dumps({"rules_version": rules_data["version"],
+                          "aliases": rules_data.get("aliases", {}),
                           "reviews": len(reviews), "verdicts": len(verdicts),
                           "thresholds": {"promote_hits": PROMOTE_HITS,
                                          "demote_fp_run": DEMOTE_FP_RUN,
@@ -578,6 +580,7 @@ def cmd_stats(args) -> int:
         return 0
 
     print(f"规则体检（规则库 v{rules_data['version']}）")
+    print(f"规则库：{len(rules_data['rules'])} 条活跃规则，{len(rules_data.get('aliases', {}))} 条合并别名")
     print(f"裁决账：{len(reviews)} 次评审记录，{len(verdicts)} 条裁决\n")
     print(f"{'规则':<6}{'级别':<9}{'命中':>5}{'文档':>5}{'误报':>5}{'已修':>5}"
           f"{'漏报':>5}{'未修连续':>9}")
